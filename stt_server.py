@@ -402,7 +402,7 @@ def parse_arguments():
     import argparse
     parser = argparse.ArgumentParser(description='Start the Speech-to-Text (STT) server with various configuration options.')
 
-    parser.add_argument('-m', '--model', type=str, default='large-v2',
+    parser.add_argument('-m', '--model', type=str, default='tiny',
                         help='Path to the STT model or model size. Options include: tiny, tiny.en, base, base.en, small, small.en, medium, medium.en, large-v1, large-v2, or any huggingface CTranslate2 STT model such as deepdml/faster-whisper-large-v3-turbo-ct2. Default is large-v2.')
 
     parser.add_argument('-r', '--rt-model', '--realtime_model_type', type=str, default='tiny',

@@ -18,7 +18,7 @@ public class STTHandlerEditor : Editor
 
         if (activeMicrophoneDeviceForInfoProperty == null)
         {
-            Debug.LogWarning("STTHandlerEditor: Could not find SerializedProperty 'activeMicrophoneDeviceForInfo'.");
+            // The handlers possess this property, but not the manager. We'll find it manually if needed.
         }
     }
 
@@ -26,6 +26,18 @@ public class STTHandlerEditor : Editor
     {
         // Always call this at the beginning
         serializedObject.Update();
+
+        // 1. First, define the custom read-only fields/groups we want
+        EditorGUILayout.LabelField("Server Setup", EditorStyles.boldLabel);
+        
+        // Let the default property iterator draw serverType
+        SerializedProperty activeServerTypeProp = serializedObject.FindProperty("activeServerType");
+        if (activeServerTypeProp != null)
+        {
+            EditorGUILayout.PropertyField(activeServerTypeProp);
+        }
+
+        EditorGUILayout.Space();
 
         EditorGUILayout.LabelField("Microphone Configuration", EditorStyles.boldLabel);
 
@@ -38,8 +50,22 @@ public class STTHandlerEditor : Editor
         else
         {
             int currentDeviceIndex = -1;
-            // Get the currently stored microphone name from the STTHandler instance
-            string currentDeviceName = sttHandler.selectedMicrophoneDeviceName;
+            
+            // Get the proper currently stored microphone name
+            string currentDeviceName = "";
+            
+            // Awake() might not run in edit mode, so we ensure the references are populated for the editor script
+            var pHandler = sttHandler.GetComponent<ParakeetSTTHandler>();
+            var wHandler = sttHandler.GetComponent<WhisperHandler>();
+
+            if (sttHandler.activeServerType == STTServerType.Parakeet && pHandler != null)
+            {
+                currentDeviceName = pHandler.selectedMicrophoneDeviceName;
+            }
+            else if (sttHandler.activeServerType == STTServerType.Whisper && wHandler != null)
+            {
+                currentDeviceName = wHandler.selectedMicrophoneDeviceName;
+            }
 
             if (!string.IsNullOrEmpty(currentDeviceName))
             {
@@ -53,7 +79,6 @@ public class STTHandlerEditor : Editor
                 }
             }
 
-            // If the stored name isn't in the current list (e.g., device unplugged)
             if (currentDeviceIndex == -1 && !string.IsNullOrEmpty(currentDeviceName))
             {
                 EditorGUILayout.HelpBox($"Previously selected: '{currentDeviceName}' (now disconnected or not found). Please select an available device.", MessageType.Warning);
@@ -63,26 +88,26 @@ public class STTHandlerEditor : Editor
 
             if (newSelectedDeviceIndex != currentDeviceIndex)
             {
-                Undo.RecordObject(sttHandler, "Select Microphone Device"); // For Undo support
+                string newDevice = string.Empty;
                 if (newSelectedDeviceIndex >= 0 && newSelectedDeviceIndex < microphoneDevices.Length)
                 {
-                    // Call the method in STTHandler to update the name
-                    sttHandler.OnMicrophoneSelectedInEditor(microphoneDevices[newSelectedDeviceIndex]);
+                    newDevice = microphoneDevices[newSelectedDeviceIndex];
                 }
-                else
-                {
-                    sttHandler.OnMicrophoneSelectedInEditor(string.Empty); // Handle deselection or error
-                }
-                EditorUtility.SetDirty(sttHandler); // Mark STTHandler as changed to ensure data saves
-            }
-        }
 
-        // --- Custom Display for Active Microphone (Read-only) ---
-        if (activeMicrophoneDeviceForInfoProperty != null)
-        {
-            GUI.enabled = false; // Temporarily disable GUI to make the field read-only
-            EditorGUILayout.PropertyField(activeMicrophoneDeviceForInfoProperty, new GUIContent("Active Microphone (Info)"));
-            GUI.enabled = true;  // Re-enable GUI for subsequent fields
+                if (pHandler != null) 
+                {
+                    Undo.RecordObject(pHandler, "Select Microphone Device"); 
+                    pHandler.OnMicrophoneSelectedInEditor(newDevice);
+                    EditorUtility.SetDirty(pHandler);
+                }
+
+                if (wHandler != null)
+                {
+                    Undo.RecordObject(wHandler, "Select Microphone Device"); 
+                    wHandler.OnMicrophoneSelectedInEditor(newDevice);
+                    EditorUtility.SetDirty(wHandler);
+                }
+            }
         }
 
         EditorGUILayout.Space(); // Adds a little visual separation
@@ -96,7 +121,8 @@ public class STTHandlerEditor : Editor
         {
             "m_Script",                         // Default script field, always good to skip explicitly
             "selectedMicrophoneDeviceName",     // We handle this with the dropdown (it's also [HideInInspector])
-            "activeMicrophoneDeviceForInfo"     // We draw this manually as read-only info
+            "activeMicrophoneDeviceForInfo",     // We draw this manually as read-only info
+            "activeServerType"                  // Drawn custom under Server Setup
         };
 
         SerializedProperty property = serializedObject.GetIterator();
