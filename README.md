@@ -83,13 +83,14 @@ For a more detailed explanation of the command-line arguments, please refer to t
 You can choose a local kokoro-based server or an online ElevenLabs service to be the TTS service. The kokoro-based solution is more free and can run locally without internet connection, but it requires a NVIDIA GPU for real-time performance. The ElevenLabs solution is paid cloud-based service, it requires an internet connection and has usage limits based on your plan, but has more features, for example, can talk German, and supports voice cloning. For future development, I will integrate QwenTTS, a state of the art local TTS solution, even with very good voice cloning capability that paid ElevenLabs offers.
 
 <details>
-<summary>Kokoro-based STT</summary>
+<summary>Kokoro-based TTS</summary>
 
-You can first try it out if the voice quality fits your need. I hosted a kokoro TTS server on a website I made[AI Text to Speech](https://myonlinefiletools.com/tools/text-to-speech). If you want to run it locally, use [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI), which runs in a Docker container. Follow the instructions in its `README.md` to build and run the Docker container. This will expose the TTS API on your local machine.
+You can first try it out if the voice quality fits your need. I hosted a kokoro TTS server on a website I made: [AI Text to Speech](https://myonlinefiletools.com/tools/text-to-speech). If you want to run it locally, use [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI), which runs in a Docker container. Follow the instructions in its `README.md` to build and run the Docker container. This will expose the TTS API on your local machine.
 </details>
 
 <details>
 <summary>ElevenLabs TTS</summary>
+
 1.  Sign up for an account at [ElevenLabs](https://elevenlabs.io/).
 2.  Create an API key in your account settings.
 3.  Paste the API key into the Unity client configuration located in `Assets/Resources/ElevenLabsConfiguration`. The Unity client will use this key to authenticate requests to the ElevenLabs API. (Make sure to keep your API key secure and do not share it publicly.)

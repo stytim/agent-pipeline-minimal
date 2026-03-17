@@ -6,8 +6,6 @@
 [Bb]uilds/
 [Uu]serSettings/
 [Aa]pp/
-[Aa]ndroid/
-[Aa]RFoundationRemoteCompanionApp/
 Assets/AssetStoreTools*
 Packages/packages-lock.json
 
@@ -48,4 +46,3 @@ sysinfo.txt
 *.unitypackage
 
 .DS_Store
-ARFoundationRemoteInstaller
