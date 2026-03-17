@@ -102,8 +102,8 @@ Once all servers are running, configure the Unity client.
 
 1.  In the Scene Hierarchy, find the scripts responsible for handling STT, LLM, and TTS (e.g., `STT Handler`, `LLM Handler`, `TTS Handler`).
 2.  In the Inspector for each of these objects, update the **IP Address** field to match the IP of the machine running the corresponding server. If all servers are on the same machine as Unity, you can use `localhost`.
-3.  on `STT Handler`, in the Active Server Type dropdown, select the appropriate STT service.
-4.  On `TTS Handler`, in the Selected TTS dropdown, select the appropriate TTS service.
+3.  In `STT Handler`, select the STT service you set up above in the Active Server Type dropdown.
+4.  In `TTS Handler`, select the TTS service you set up above in the Selected TTS dropdown.
 5.  Select the `STT Handler` GameObject. In the Inspector, choose the **Microphone** you want to use from the dropdown list.
 
 #### Optional Configurations
@@ -123,7 +123,7 @@ Once all servers are running, configure the Unity client.
 ## Cite Us
 This agent pipeline framework is developed for a series of research projects. If you find this project useful for your research, please consider citing our paper:
 
-```
+```bibtex
 @ARTICLE{song2025Enhancing,
   author={Song, Tianyu and Pabst, Felix and Eck, Ulrich and Navab, Nassir},
   journal={IEEE Transactions on Visualization and Computer Graphics}, 
@@ -135,7 +135,7 @@ This agent pipeline framework is developed for a series of research projects. If
   keywords={Robots;Ultrasonic imaging;Visualization;Mixed reality;Medical services;Virtual assistants;Real-time systems;Virtual environments;Three-dimensional displays;Probes;Mixed Reality;Virtual Agent;Robotic Ultrasound;Trust and Acceptance},
   doi={10.1109/TVCG.2025.3549181}}
 ```
-```
+```bibtex
 @inproceedings{song2025intelligent,
   title={Intelligent Virtual Sonographer (IVS): Enhancing Physician-Robot-Patient Communication},
   author={Song, Tianyu and Li, Feng and Bi, Yuan and Karlas, Angelos and Yousefi, Amir and Branzan, Daniela and Jiang, Zhongliang and Eck, Ulrich and Navab, Nassir},
