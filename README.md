@@ -1,14 +1,14 @@
 # Virtual Agent Minimal Demo
 
-This project is a minimal demonstration of a virtual agent powered by local AI services, all integrated within a Unity client. It creates an interactive conversational experience by combining real-time Speech-to-Text (STT), a Large Language Model (LLM), and Text-to-Speech (TTS).
+This project is a minimal demonstration of a virtual agent powered by local AI services, all integrated within a Unity client. It creates an interactive conversational experience by combining real-time Speech-to-Text (STT), a Vision/Large Language Model (VLM/LLM), and Text-to-Speech (TTS).
 
 ## How It Works
 
 The system is composed of several independent services that communicate over the network:
 
-1.  **Speech-to-Text (STT) Server**: Captures audio from the Unity client, transcribes it to text in real-time, and sends it to the LLM.
-2.  **Large Language Model (LLM) Server**: Receives the transcribed text, generates a conversational response, and passes it to the TTS server.
-3.  **Text-to-Speech (TTS) Server**: Converts the LLM's text response into audible speech.
+1.  **Speech-to-Text (STT) Server**: Captures audio from the Unity client, transcribes it to text in real-time, and sends it to the VLM/LLM.
+2.  **Vision/Large Language Model (VLM/LLM) Server**: Receives the transcribed text and image, generates a conversational response, and passes it to the TTS server.
+3.  **Text-to-Speech (TTS) Server**: Converts the VLM/LLM's text response into audible speech.
 4.  **Unity Client**: Manages the user interaction, records microphone input, sends it to the STT server, and plays the synthesized audio response from the TTS server.
 
 ## Setup Instructions
@@ -47,9 +47,9 @@ This uses [Parakeet-0.6b-v3-fastapi-websocket](https://github.com/stytim/parakee
 
 </details>
 
-### 2. Large Language Model (LLM) Server
+### 2. Vision/Large Language Model (VLM/LLM) Server
 
-The LLM is served using [LlamaLib](https://github.com/undreamai/LlamaLib/releases), a server compatible with the `llama.cpp` ecosystem.
+The VlM/LLM is served using my own fork version of [LlamaLib](https://github.com/stytim/LlamaLib), a server compatible with the `llama.cpp` ecosystem. My fork adds support for multimodal input for vision lanaguage models, tested with Qwen 3.5 series models.
 
 1.  Download from the LlamaLib releases or build it from source.
 2.  Download the GGUF model file you wish to use, I recommend Qwen 3.5 series for state of the art performance, but you can choose any model that fits your needs. You can find the GGUF files for Qwen 3.5 models below:
@@ -57,17 +57,18 @@ The LLM is served using [LlamaLib](https://github.com/undreamai/LlamaLib/release
     - [Qwen 3.5 4B](https://huggingface.co/unsloth/Qwen3.5-4B-GGUF/resolve/main/Qwen3.5-4B-Q4_K_M.gguf)
     - [Qwen 3.5 2B](https://huggingface.co/unsloth/Qwen3.5-2B-GGUF/resolve/main/Qwen3.5-2B-Q4_K_M.gguf)
     - [Qwen 3.5 0.8B](https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF/resolve/main/Qwen3.5-0.8B-Q4_K_M.gguf)
-3.  Open a terminal and run the LLM server.
+3.  Open a terminal and run the VLM/LLM server.
 
 The Unity client side has a modified version of [LLM for Unity](https://github.com/undreamai/LLMUnity). Specifically, I removed the dependency of the huge prebuilt library and implemented the C# equivalent of the LlamaLib client, and removed the annoying autodownload of Llamalib in Unity, so be aware if you want to upgrade to the latest LLM for Unity in the future.
 
 **Example: For Qwen-3.5 0.8B on macOS (ARM64):**
 ```bash
-./servers/llamalib_osx-arm64_server -m "Qwen3.5-0.8B-Q4_K_M.gguf" -t -1 -np 1 -c 4096 -b 512 -ngl 99 -fa off --port 13333 --host 0.0.0.0 --verbose
+./servers/llamalib_osx-arm64_server -m "Qwen3.5-0.8B-Q4_K_M.gguf" -mm mmproj-F16.gguf -t -1 -np 1 -c 4096 -b 512 -ngl 99 -fa off --port 13333 --host 0.0.0.0 --verbose
 ```
 For a more detailed explanation of the command-line arguments, please refer to the [llama.cpp documentation](https://github.com/ggml-org/llama.cpp/blob/master/tools/cli/README.md). Here are some key flags to note:
 
 *   **`-m`**: This specifies the path to your GGUF model file.
+*   **`-mm`**: This specifies the path to the multimodal projection file. This is required for vision-language models like Qwen 3.5, and you can find the corresponding mmproj file for each Qwen 3.5 model in the same HuggingFace repository.
 *   **`--host 0.0.0.0`**: This allows the server to be accessible from other devices on your network.
 *   **`--port`**: This sets the port for the server. Make sure it matches the port configured in the Unity client.
 *   **`-t`**: This uses all available CPU threads. You can set this to a specific number if you want to limit CPU usage.
@@ -105,6 +106,7 @@ Once all servers are running, configure the Unity client.
 3.  In `STT Handler`, select the STT service you set up above in the Active Server Type dropdown.
 4.  In `TTS Handler`, select the TTS service you set up above in the Selected TTS dropdown.
 5.  Select the `STT Handler` GameObject. In the Inspector, choose the **Microphone** you want to use from the dropdown list.
+6.  In `LLM Handler`, you can find a method called `TestVLM()`, which demonstrates how to send an image along with the user query to the server.
 
 #### Optional Configurations
 -   In STT, you can use the VAD event to trigger agent behaviors. For example, you can configure the behavior triggered when the user starts or stops talking.
