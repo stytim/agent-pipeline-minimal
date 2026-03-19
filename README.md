@@ -49,7 +49,7 @@ This uses [Parakeet-0.6b-v3-fastapi-websocket](https://github.com/stytim/parakee
 
 ### 2. Large Language Model (LLM) Server
 
-The LLM is served using [LlamaLib](https://github.com/undreamai/LlamaLib/releases), a server compatible with the `llama.cpp` ecosystem.
+The LLM is served using [LlamaLib](https://github.com/undreamai/LlamaLib/releases), a server compatible with the `llama.cpp` ecosystem, but does not support multimodal input. For vision language multimodal support please refer to [vlm branch](https://github.com/stytim/agent-pipeline-minimal/tree/vlm) of this repository.
 
 1.  Download from the LlamaLib releases or build it from source.
 2.  Download the GGUF model file you wish to use, I recommend Qwen 3.5 series for state of the art performance, but you can choose any model that fits your needs. You can find the GGUF files for Qwen 3.5 models below:
