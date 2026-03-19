@@ -1032,8 +1032,9 @@ MonoBehaviour:
   subtitle: {fileID: 0}
   displayTime: 3
   fadeOutDuration: 0.5
-  inputForLLM: 'Patient: Hello?'
-  timeout: 1
+  inputForLLM: 'Patient: What is this thing?'
+  imageForVLM: {fileID: 2800000, guid: 2eab5951daa684e0b975951df8e6c7e0, type: 3}
+  timeout: 2
 --- !u!4 &979176443
 Transform:
   m_ObjectHideFlags: 0

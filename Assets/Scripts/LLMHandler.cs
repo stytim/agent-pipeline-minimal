@@ -28,8 +28,9 @@ public class LLMHandler : MonoBehaviour
     private Coroutine _activeFadeCoroutine;
 
 
-    [Header("Other")]
+    [Header("Test")]
     public string inputForLLM;
+    public Texture2D imageForVLM;
     private DateTime startTime;
     float timer = 0.0f;
     public float timeout = 1.0f;
@@ -69,6 +70,18 @@ public class LLMHandler : MonoBehaviour
     private void TestLLM()
     {
         Question(inputForLLM);
+    }
+
+    [ContextMenu("Test VLM")]
+    private async void TestVLM()
+    {
+        byte[] jpg = imageForVLM.EncodeToJPG(90);
+        string response = await llmCharacter.ChatWithImageBytes(
+            inputForLLM,
+            jpg,
+            "image/jpeg"
+        );
+        ProcessLLMResponse(response);
     }
 
     public void ReTry()

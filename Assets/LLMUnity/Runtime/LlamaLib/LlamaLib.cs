@@ -99,7 +99,8 @@ namespace UndreamAI.LlamaLib
             int batchSize = 2048,
             [MarshalAs(UnmanagedType.I1)] bool embeddingOnly = false,
             int loraCount = 0,
-            IntPtr loraPaths = default);
+            IntPtr loraPaths = default,
+            [MarshalAs(UnmanagedType.LPStr)] string mmprojPath = null);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate IntPtr LLMService_From_Command_Delegate([MarshalAs(UnmanagedType.LPStr)] string paramsString);
@@ -171,6 +172,9 @@ namespace UndreamAI.LlamaLib
         public delegate void LLMAgent_Add_User_Message_Delegate(IntPtr llm, [MarshalAs(UnmanagedType.LPStr)] string content);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void LLMAgent_Add_User_Message_Json_Delegate(IntPtr llm, [MarshalAs(UnmanagedType.LPStr)] string contentJson);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void LLMAgent_Add_Assistant_Message_Delegate(IntPtr llm, [MarshalAs(UnmanagedType.LPStr)] string content);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -184,6 +188,15 @@ namespace UndreamAI.LlamaLib
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate int LLMAgent_Get_History_Size_Delegate(IntPtr llm);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void LLMAgent_Set_Overflow_Strategy_Delegate(IntPtr llm, int strategy, float targetRatio, [MarshalAs(UnmanagedType.LPStr)] string summarizePrompt);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate IntPtr LLMAgent_Get_Summary_Delegate(IntPtr llm);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void LLMAgent_Set_Summary_Delegate(IntPtr llm, [MarshalAs(UnmanagedType.LPStr)] string summary);
 
         //################################################## FUNCTION POINTERS ##################################################//
 
@@ -230,18 +243,22 @@ namespace UndreamAI.LlamaLib
         public LLMAgent_Get_History_Delegate LLMAgent_Get_History_Internal;
         public LLMAgent_Set_History_Delegate LLMAgent_Set_History_Internal;
         public LLMAgent_Add_User_Message_Delegate LLMAgent_Add_User_Message_Internal;
+        public LLMAgent_Add_User_Message_Json_Delegate LLMAgent_Add_User_Message_Json_Internal;
         public LLMAgent_Add_Assistant_Message_Delegate LLMAgent_Add_Assistant_Message_Internal;
         public LLMAgent_Remove_Last_Message_Delegate LLMAgent_Remove_Last_Message_Internal;
         public LLMAgent_Save_History_Delegate LLMAgent_Save_History_Internal;
         public LLMAgent_Load_History_Delegate LLMAgent_Load_History_Internal;
         public LLMAgent_Get_History_Size_Delegate LLMAgent_Get_History_Size_Internal;
+        public LLMAgent_Set_Overflow_Strategy_Delegate LLMAgent_Set_Overflow_Strategy_Internal;
+        public LLMAgent_Get_Summary_Delegate LLMAgent_Get_Summary_Internal;
+        public LLMAgent_Set_Summary_Delegate LLMAgent_Set_Summary_Internal;
 
         //################################################## STATUS CHECKING WRAPPER ##################################################//
 
         public void CheckStatus(bool crashesOnly = false)
         {
             int status = LLM_Status_Code_Internal();
-            if (status > 0 || (status < 0 && !crashesOnly))
+            if (status < 0 || (status > 0 && !crashesOnly))
             {
                 string msg = Marshal.PtrToStringAnsi(LLM_Status_Message_Internal()) ?? "";
                 throw new InvalidOperationException($"LlamaLib error {status}: {msg}");
@@ -300,8 +317,9 @@ namespace UndreamAI.LlamaLib
             int batchSize = 2048,
             bool embeddingOnly = false,
             int loraCount = 0,
-            IntPtr loraPaths = default
-        ) => CallWithStatus(() => LLMService_Construct_Internal(modelPath, numSlots, numThreads, numGpuLayers, flashAttention, contextSize, batchSize, embeddingOnly, loraCount, loraPaths));
+            IntPtr loraPaths = default,
+            string mmprojPath = null
+        ) => CallWithStatus(() => LLMService_Construct_Internal(modelPath, numSlots, numThreads, numGpuLayers, flashAttention, contextSize, batchSize, embeddingOnly, loraCount, loraPaths, mmprojPath));
         public IntPtr LLMService_From_Command(string paramsString) => CallWithStatus(() => LLMService_From_Command_Internal(paramsString));
         public IntPtr LLMService_Command(IntPtr llm) => CallWithStatus(() => LLMService_Command_Internal(llm));
         public IntPtr LLMClient_Construct(IntPtr llm) => CallWithStatus(() => LLMClient_Construct_Internal(llm));
@@ -323,11 +341,15 @@ namespace UndreamAI.LlamaLib
         public IntPtr LLMAgent_Get_History(IntPtr llm) => CallWithStatus(() => LLMAgent_Get_History_Internal(llm));
         public void LLMAgent_Set_History(IntPtr llm, string historyJson) => CallWithStatus(() => LLMAgent_Set_History_Internal(llm, historyJson));
         public void LLMAgent_Add_User_Message(IntPtr llm, string content) => CallWithStatus(() => LLMAgent_Add_User_Message_Internal(llm, content));
+        public void LLMAgent_Add_User_Message_Json(IntPtr llm, string contentJson) => CallWithStatus(() => LLMAgent_Add_User_Message_Json_Internal(llm, contentJson));
         public void LLMAgent_Add_Assistant_Message(IntPtr llm, string content) => CallWithStatus(() => LLMAgent_Add_Assistant_Message_Internal(llm, content));
         public void LLMAgent_Remove_Last_Message(IntPtr llm) => CallWithStatus(() => LLMAgent_Remove_Last_Message_Internal(llm));
         public void LLMAgent_Save_History(IntPtr llm, string filepath) => CallWithStatus(() => LLMAgent_Save_History_Internal(llm, filepath));
         public void LLMAgent_Load_History(IntPtr llm, string filepath) => CallWithStatus(() => LLMAgent_Load_History_Internal(llm, filepath));
         public int LLMAgent_Get_History_Size(IntPtr llm) => CallWithStatus(() => LLMAgent_Get_History_Size_Internal(llm));
+        public void LLMAgent_Set_Overflow_Strategy(IntPtr llm, int strategy, float targetRatio, string summarizePrompt = null) => CallWithStatus(() => LLMAgent_Set_Overflow_Strategy_Internal(llm, strategy, targetRatio, summarizePrompt));
+        public string LLMAgent_Get_Summary(IntPtr llm) => Marshal.PtrToStringAnsi(CallWithStatus(() => LLMAgent_Get_Summary_Internal(llm)));
+        public void LLMAgent_Set_Summary(IntPtr llm, string summary) => CallWithStatus(() => LLMAgent_Set_Summary_Internal(llm, summary));
 
         //################################################## MOBILE IMPLEMENTATION ##################################################//
 
@@ -449,7 +471,8 @@ namespace UndreamAI.LlamaLib
             int batchSize = 2048,
             [MarshalAs(UnmanagedType.I1)] bool embeddingOnly = false,
             int loraCount = 0,
-            IntPtr loraPaths = default);
+            IntPtr loraPaths = default,
+            [MarshalAs(UnmanagedType.LPStr)] string mmprojPath = null);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "LLMService_From_Command")]
         public static extern IntPtr LLMService_From_Command_Static([MarshalAs(UnmanagedType.LPStr)] string paramsString);
@@ -522,6 +545,9 @@ namespace UndreamAI.LlamaLib
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "LLMAgent_Add_User_Message")]
         public static extern void LLMAgent_Add_User_Message_Static(IntPtr llm, [MarshalAs(UnmanagedType.LPStr)] string content);
 
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "LLMAgent_Add_User_Message_Json")]
+        public static extern void LLMAgent_Add_User_Message_Json_Static(IntPtr llm, [MarshalAs(UnmanagedType.LPStr)] string contentJson);
+
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "LLMAgent_Add_Assistant_Message")]
         public static extern void LLMAgent_Add_Assistant_Message_Static(IntPtr llm, [MarshalAs(UnmanagedType.LPStr)] string content);
 
@@ -536,6 +562,15 @@ namespace UndreamAI.LlamaLib
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "LLMAgent_Get_History_Size")]
         public static extern int LLMAgent_Get_History_Size_Static(IntPtr llm);
+
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "LLMAgent_Set_Overflow_Strategy")]
+        public static extern void LLMAgent_Set_Overflow_Strategy_Static(IntPtr llm, int strategy, float targetRatio, [MarshalAs(UnmanagedType.LPStr)] string summarizePrompt);
+
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "LLMAgent_Get_Summary")]
+        public static extern IntPtr LLMAgent_Get_Summary_Static(IntPtr llm);
+
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "LLMAgent_Set_Summary")]
+        public static extern void LLMAgent_Set_Summary_Static(IntPtr llm, [MarshalAs(UnmanagedType.LPStr)] string summary);
 
         public static IntPtr Available_Architectures([MarshalAs(UnmanagedType.I1)] bool gpu) { return IntPtr.Zero; }
         public static bool Has_GPU_Layers([MarshalAs(UnmanagedType.LPStr)] string command) { return false; }
@@ -577,7 +612,7 @@ namespace UndreamAI.LlamaLib
             LLM_Status_Code_Internal = () => LLM_Status_Code_Static();
             LLM_Status_Message_Internal = () => LLM_Status_Message_Static();
             LLM_Embedding_Size_Internal = (llm) => LLM_Embedding_Size_Static(llm);
-            LLMService_Construct_Internal = (modelPath, numSlots, numThreads, numGpuLayers, flashAttention, contextSize, batchSize, embeddingOnly, loraCount, loraPaths) => LLMService_Construct_Static(modelPath, numSlots, numThreads, numGpuLayers, flashAttention, contextSize, batchSize, embeddingOnly, loraCount, loraPaths);
+            LLMService_Construct_Internal = (modelPath, numSlots, numThreads, numGpuLayers, flashAttention, contextSize, batchSize, embeddingOnly, loraCount, loraPaths, mmprojPath) => LLMService_Construct_Static(modelPath, numSlots, numThreads, numGpuLayers, flashAttention, contextSize, batchSize, embeddingOnly, loraCount, loraPaths, mmprojPath);
             LLMService_From_Command_Internal = (paramsString) => LLMService_From_Command_Static(paramsString);
             LLMService_Command_Internal = (llm) => LLMService_Command_Static(llm);
             LLMClient_Construct_Internal = (llm) => LLMClient_Construct_Static(llm);
@@ -598,11 +633,26 @@ namespace UndreamAI.LlamaLib
             LLMAgent_Get_History_Internal = (llm) => LLMAgent_Get_History_Static(llm);
             LLMAgent_Set_History_Internal = (llm, historyJson) => LLMAgent_Set_History_Static(llm, historyJson);
             LLMAgent_Add_User_Message_Internal = (llm, content) => LLMAgent_Add_User_Message_Static(llm, content);
+            LLMAgent_Add_User_Message_Json_Internal = (llm, contentJson) =>
+            {
+                try
+                {
+                    LLMAgent_Add_User_Message_Json_Static(llm, contentJson);
+                }
+                catch (EntryPointNotFoundException)
+                {
+                    // Backward compatibility with native libraries that do not export LLMAgent_Add_User_Message_Json.
+                    LLMAgent_Add_User_Message_Static(llm, contentJson);
+                }
+            };
             LLMAgent_Add_Assistant_Message_Internal = (llm, content) => LLMAgent_Add_Assistant_Message_Static(llm, content);
             LLMAgent_Remove_Last_Message_Internal = (llm) => LLMAgent_Remove_Last_Message_Static(llm);
             LLMAgent_Save_History_Internal = (llm, filepath) => LLMAgent_Save_History_Static(llm, filepath);
             LLMAgent_Load_History_Internal = (llm, filepath) => LLMAgent_Load_History_Static(llm, filepath);
             LLMAgent_Get_History_Size_Internal = (llm) => LLMAgent_Get_History_Size_Static(llm);
+            LLMAgent_Set_Overflow_Strategy_Internal = (llm, strategy, targetRatio, summarizePrompt) => LLMAgent_Set_Overflow_Strategy_Static(llm, strategy, targetRatio, summarizePrompt);
+            LLMAgent_Get_Summary_Internal = (llm) => LLMAgent_Get_Summary_Static(llm);
+            LLMAgent_Set_Summary_Internal = (llm, summary) => LLMAgent_Set_Summary_Static(llm, summary);
         }
 
         public void Dispose() {}
@@ -618,7 +668,7 @@ namespace UndreamAI.LlamaLib
         private List<IntPtr> dependencyHandles = new List<IntPtr>();
         private static int debugLevelGlobal = 0;
         private static CharArrayCallback loggingCallbackGlobal = null;
-        private string[] availableLibraries = null;
+        private List<Tuple<string, bool>> availableLibraries = null;
         private int currentLibraryIndex = 0;
 
         // Runtime lib
@@ -645,7 +695,8 @@ namespace UndreamAI.LlamaLib
             int batchSize = 2048,
             [MarshalAs(UnmanagedType.I1)] bool embeddingOnly = false,
             int loraCount = 0,
-            IntPtr loraPaths = default) => CreateLLMWithFallback(() => LLMService_Construct_Internal_Single(modelPath, numSlots, numThreads, numGpuLayers, flashAttention, contextSize, batchSize, embeddingOnly, loraCount, loraPaths));
+            IntPtr loraPaths = default,
+            [MarshalAs(UnmanagedType.LPStr)] string mmprojPath = null) => CreateLLMWithFallback(() => LLMService_Construct_Internal_Single(modelPath, numSlots, numThreads, numGpuLayers, flashAttention, contextSize, batchSize, embeddingOnly, loraCount, loraPaths, mmprojPath));
 
         public IntPtr LLMService_From_Command_Internal([MarshalAs(UnmanagedType.LPStr)] string paramsString) => CreateLLMWithFallback(() => LLMService_From_Command_Internal_Single(paramsString));
 
@@ -724,10 +775,7 @@ namespace UndreamAI.LlamaLib
         private string[] GetAvailableArchitectures(bool gpu)
         {
             string architecturesString = Marshal.PtrToStringAnsi(Available_Architectures(gpu));
-            if (string.IsNullOrEmpty(architecturesString))
-            {
-                throw new InvalidOperationException("No architectures available for the specified GPU setting.");
-            }
+            if (string.IsNullOrEmpty(architecturesString)) return new string[0];
 
             string[] librariesOptions = architecturesString.Split(',');
             List<string> libraries = new List<string>();
@@ -751,12 +799,20 @@ namespace UndreamAI.LlamaLib
 
         private void LoadLibraries(bool gpu)
         {
-            availableLibraries = GetAvailableArchitectures(gpu);
+            availableLibraries = new List<Tuple<string, bool>>();
+            bool[] arch_options = gpu ? new bool[] { true, false }: new bool[] { false };
+            foreach (bool arch_gpu in arch_options)
+            {
+                string[] archs = GetAvailableArchitectures(arch_gpu);
+                foreach (string arch in archs) availableLibraries.Add(new Tuple<string, bool>(arch, arch_gpu));
+            }
             currentLibraryIndex = -1;
 
             if (!TryNextLibrary())
             {
-                throw new InvalidOperationException($"Failed to load any library. Available libraries: {string.Join(", ", availableLibraries)}");
+                string libs = "";
+                foreach (Tuple<string, bool> arch in availableLibraries) libs += arch.Item1 + ", ";
+                throw new InvalidOperationException($"Failed to load any library. Available libraries: {libs.TrimEnd(',', ' ')}");
             }
         }
 
@@ -797,9 +853,9 @@ namespace UndreamAI.LlamaLib
                 libraryHandle = IntPtr.Zero;
             }
 
-            while (++currentLibraryIndex < availableLibraries.Length)
+            while (++currentLibraryIndex < availableLibraries.Count)
             {
-                string library = availableLibraries[currentLibraryIndex];
+                var (library, is_gpu_library) = availableLibraries[currentLibraryIndex];
                 try
                 {
                     string libraryPath = FindLibrary(library.Trim());
@@ -812,6 +868,8 @@ namespace UndreamAI.LlamaLib
                     libraryHandle = LibraryLoader.LoadLibrary(libraryPath);
 
                     LoadFunctionPointers();
+                    if (is_gpu_library && !LLMService_Supports_GPU()) continue;
+
                     architecture = library.Trim();
                     if (debugLevelGlobal > 0) Console.WriteLine("Successfully loaded: " + libraryPath);
                     return true;
@@ -858,6 +916,7 @@ namespace UndreamAI.LlamaLib
             LLM_Debug = LibraryLoader.GetSymbolDelegate<LLM_Debug_Delegate>(libraryHandle, "LLM_Debug");
             LLM_Logging_Callback = LibraryLoader.GetSymbolDelegate<LLM_Logging_Callback_Delegate>(libraryHandle, "LLM_Logging_Callback");
             LLM_Logging_Stop = LibraryLoader.GetSymbolDelegate<LLM_Logging_Stop_Delegate>(libraryHandle, "LLM_Logging_Stop");
+            LLMService_Supports_GPU = LibraryLoader.GetSymbolDelegate<LLMService_Supports_GPU_Delegate>(libraryHandle, "LLMService_Supports_GPU");
 
             LLM_Enable_Reasoning_Internal = LibraryLoader.GetSymbolDelegate<LLM_Enable_Reasoning_Delegate>(libraryHandle, "LLM_Enable_Reasoning");
             LLM_Apply_Template_Internal = LibraryLoader.GetSymbolDelegate<LLM_Apply_Template_Delegate>(libraryHandle, "LLM_Apply_Template");
@@ -903,11 +962,23 @@ namespace UndreamAI.LlamaLib
             LLMAgent_Get_History_Internal = LibraryLoader.GetSymbolDelegate<LLMAgent_Get_History_Delegate>(libraryHandle, "LLMAgent_Get_History");
             LLMAgent_Set_History_Internal = LibraryLoader.GetSymbolDelegate<LLMAgent_Set_History_Delegate>(libraryHandle, "LLMAgent_Set_History");
             LLMAgent_Add_User_Message_Internal = LibraryLoader.GetSymbolDelegate<LLMAgent_Add_User_Message_Delegate>(libraryHandle, "LLMAgent_Add_User_Message");
+            try
+            {
+                LLMAgent_Add_User_Message_Json_Internal = LibraryLoader.GetSymbolDelegate<LLMAgent_Add_User_Message_Json_Delegate>(libraryHandle, "LLMAgent_Add_User_Message_Json");
+            }
+            catch (EntryPointNotFoundException)
+            {
+                // Backward compatibility with native libraries that do not export LLMAgent_Add_User_Message_Json.
+                LLMAgent_Add_User_Message_Json_Internal = (llm, contentJson) => LLMAgent_Add_User_Message_Internal(llm, contentJson);
+            }
             LLMAgent_Add_Assistant_Message_Internal = LibraryLoader.GetSymbolDelegate<LLMAgent_Add_Assistant_Message_Delegate>(libraryHandle, "LLMAgent_Add_Assistant_Message");
             LLMAgent_Remove_Last_Message_Internal = LibraryLoader.GetSymbolDelegate<LLMAgent_Remove_Last_Message_Delegate>(libraryHandle, "LLMAgent_Remove_Last_Message");
             LLMAgent_Save_History_Internal = LibraryLoader.GetSymbolDelegate<LLMAgent_Save_History_Delegate>(libraryHandle, "LLMAgent_Save_History");
             LLMAgent_Load_History_Internal = LibraryLoader.GetSymbolDelegate<LLMAgent_Load_History_Delegate>(libraryHandle, "LLMAgent_Load_History");
             LLMAgent_Get_History_Size_Internal = LibraryLoader.GetSymbolDelegate<LLMAgent_Get_History_Size_Delegate>(libraryHandle, "LLMAgent_Get_History_Size");
+            LLMAgent_Set_Overflow_Strategy_Internal = LibraryLoader.GetSymbolDelegate<LLMAgent_Set_Overflow_Strategy_Delegate>(libraryHandle, "LLMAgent_Set_Overflow_Strategy");
+            LLMAgent_Get_Summary_Internal = LibraryLoader.GetSymbolDelegate<LLMAgent_Get_Summary_Delegate>(libraryHandle, "LLMAgent_Get_Summary");
+            LLMAgent_Set_Summary_Internal = LibraryLoader.GetSymbolDelegate<LLMAgent_Set_Summary_Delegate>(libraryHandle, "LLMAgent_Set_Summary");
         }
 
         // Static functions
@@ -920,9 +991,13 @@ namespace UndreamAI.LlamaLib
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void LLM_Logging_Stop_Delegate();
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate bool LLMService_Supports_GPU_Delegate();
+
         public LLM_Debug_Delegate LLM_Debug;
         public LLM_Logging_Callback_Delegate LLM_Logging_Callback;
         public LLM_Logging_Stop_Delegate LLM_Logging_Stop;
+        public LLMService_Supports_GPU_Delegate LLMService_Supports_GPU;
 
         public static void Debug(int debugLevel)
         {
