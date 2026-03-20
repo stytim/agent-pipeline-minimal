@@ -53,10 +53,10 @@ The VlM/LLM is served using my own fork version of [LlamaLib](https://github.com
 
 1.  Download from the LlamaLib releases or build it from source.
 2.  Download the GGUF model file you wish to use, I recommend Qwen 3.5 series for state of the art performance, but you can choose any model that fits your needs. You can find the GGUF files for Qwen 3.5 models below:
-    - [Qwen 3.5 9B](https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/main/Qwen3.5-9B-Q4_K_M.gguf)
-    - [Qwen 3.5 4B](https://huggingface.co/unsloth/Qwen3.5-4B-GGUF/resolve/main/Qwen3.5-4B-Q4_K_M.gguf)
-    - [Qwen 3.5 2B](https://huggingface.co/unsloth/Qwen3.5-2B-GGUF/resolve/main/Qwen3.5-2B-Q4_K_M.gguf)
-    - [Qwen 3.5 0.8B](https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF/resolve/main/Qwen3.5-0.8B-Q4_K_M.gguf)
+    - [Qwen 3.5 9B](https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/main/Qwen3.5-9B-Q4_K_M.gguf) and [Multimodal Projection File](https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/main/mmproj-F16.gguf)
+    - [Qwen 3.5 4B](https://huggingface.co/unsloth/Qwen3.5-4B-GGUF/resolve/main/Qwen3.5-4B-Q4_K_M.gguf) and [Multimodal Projection File](https://huggingface.co/unsloth/Qwen3.5-4B-GGUF/resolve/main/mmproj-F16.gguf)
+    - [Qwen 3.5 2B](https://huggingface.co/unsloth/Qwen3.5-2B-GGUF/resolve/main/Qwen3.5-2B-Q4_K_M.gguf) and [Multimodal Projection File](https://huggingface.co/unsloth/Qwen3.5-2B-GGUF/resolve/main/mmproj-F16.gguf)
+    - [Qwen 3.5 0.8B](https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF/resolve/main/Qwen3.5-0.8B-Q4_K_M.gguf) and [Multimodal Projection File](https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF/resolve/main/mmproj-F16.gguf)
 3.  Open a terminal and run the VLM/LLM server.
 
 The Unity client side has a modified version of [LLM for Unity](https://github.com/undreamai/LLMUnity). Specifically, I removed the dependency of the huge prebuilt library and implemented the C# equivalent of the LlamaLib client, and removed the annoying autodownload of Llamalib in Unity, so be aware if you want to upgrade to the latest LLM for Unity in the future.
